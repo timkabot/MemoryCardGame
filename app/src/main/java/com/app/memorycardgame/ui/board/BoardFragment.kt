@@ -5,26 +5,27 @@ import android.os.Bundle
 import android.os.Parcelable
 import androidx.recyclerview.widget.GridLayoutManager
 import com.app.memorycardgame.R
+import com.app.memorycardgame.model.data.storage.Prefs
 import com.app.memorycardgame.presentation.board.BoardPresenter
-import com.app.memorycardgame.presentation.board.IBoard
 import com.app.memorycardgame.ui.global.BaseFragment
 import com.app.memorycardgame.ui.global.list.BoardListAdapter
+import com.app.memorycardgame.utils.LIST_STATE_KEY
 import com.app.memorycardgame.utils.argument
-import com.app.memorycardgame.utils.columnCount
 import com.app.memorycardgame.utils.nickname_key
 import com.arellomobile.mvp.presenter.InjectPresenter
 import com.arellomobile.mvp.presenter.ProvidePresenter
 import kotlinx.android.synthetic.main.fragment_board.*
+import javax.inject.Inject
 
 
-class BoardFragment : BaseFragment(), IBoard {
+class BoardFragment(): BaseFragment(), IBoard {
     override val layoutRes = R.layout.fragment_board
     private lateinit var gridLayoutManager: GridLayoutManager
     private lateinit var boardListAdapter: BoardListAdapter
-    val LIST_STATE_KEY = "recycler_list_state"
     var listState: Parcelable? = null
+    private var columnCount = 2
 
-    private val nickname by argument<String>(nickname_key, null)
+    private var nickname by argument<String>(nickname_key, null)
 
     @InjectPresenter
     lateinit var presenter: BoardPresenter
@@ -35,30 +36,28 @@ class BoardFragment : BaseFragment(), IBoard {
 
     override fun onStart() {
         super.onStart()
+        val prefs = Prefs(context!!)
+        boardListAdapter = BoardListAdapter(presenter.router, prefs)
+
         initGridSize()
         initCards()
+
     }
 
     private fun checkOrientation(configuration: Configuration) {
 
-        if (configuration.orientation
-            ==
-            Configuration.ORIENTATION_LANDSCAPE
-        ) {
-            columnCount = 4
-        } else if (configuration.orientation ==
-            Configuration.ORIENTATION_PORTRAIT
-        ) {
-            columnCount = 2
+        when(configuration.orientation) {
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                columnCount = 4
+                boardListAdapter.columnCount = 4
+            }
+            Configuration.ORIENTATION_PORTRAIT -> {
+                columnCount = 2
+                boardListAdapter.columnCount = 4
+            }
         }
-
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        retainInstance = true;
-
-    }
     private fun initGridSize() {
         checkOrientation(context!!.resources.configuration)
     }
@@ -71,8 +70,14 @@ class BoardFragment : BaseFragment(), IBoard {
     private fun initRecycler() {
         gridLayoutManager = GridLayoutManager(context, columnCount)
         boardRecycler.layoutManager = gridLayoutManager
-        boardListAdapter = BoardListAdapter(presenter.router, nickname)
+        initAdapter()
+    }
+
+    private fun initAdapter(){
+        boardListAdapter.nickname = nickname
+        boardListAdapter.columnCount = columnCount
         boardRecycler.adapter = boardListAdapter
+
     }
 
     private fun updateRecycler() {
@@ -91,15 +96,22 @@ class BoardFragment : BaseFragment(), IBoard {
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
-        if (savedInstanceState != null)
-            listState = savedInstanceState.getParcelable(LIST_STATE_KEY)
+        savedInstanceState?.let {
+            listState = it.getParcelable(LIST_STATE_KEY)
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        if (listState != null) {
-            gridLayoutManager.onRestoreInstanceState(listState)
+        listState?.let {
+            gridLayoutManager.onRestoreInstanceState(it)
         }
+    }
+
+
+    override fun initCards() {
+        initRecycler()
+        updateRecycler()
     }
 
     companion object {
@@ -109,10 +121,5 @@ class BoardFragment : BaseFragment(), IBoard {
                     putString(nickname_key, nickname)
                 }
             }
-    }
-
-    override fun initCards() {
-        initRecycler()
-        updateRecycler()
     }
 }

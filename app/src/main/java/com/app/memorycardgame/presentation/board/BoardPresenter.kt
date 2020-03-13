@@ -1,6 +1,7 @@
 package com.app.memorycardgame.presentation.board
 
 import com.app.memorycardgame.entity.MemoryCard
+import com.app.memorycardgame.ui.board.IBoard
 import com.arellomobile.mvp.MvpPresenter
 import ru.terrakok.cicerone.Router
 import javax.inject.Inject
@@ -18,16 +19,16 @@ class BoardPresenter @Inject constructor(val router: Router) : MvpPresenter<IBoa
         val used = BooleanArray(cardCount)
         for (i in 1..(cardCount / 2)) {
 
-            var pos1 = Random.nextInt(0, cardCount)
-            while (used[pos1]) pos1 = Random.nextInt(0, cardCount)
-            used[pos1] = true
+            var firstCardPosition = Random.nextInt(0, cardCount)
+            while (used[firstCardPosition]) firstCardPosition = Random.nextInt(0, cardCount)
+            used[firstCardPosition] = true
 
-            var pos2 = Random.nextInt(0, cardCount)
-            while (used[pos2]) pos2 = Random.nextInt(0, cardCount)
-            used[pos2] = true
+            var secondCardPosition = Random.nextInt(0, cardCount)
+            while (used[secondCardPosition]) secondCardPosition = Random.nextInt(0, cardCount)
+            used[secondCardPosition] = true
 
-            cardList[pos1] = MemoryCard(i)
-            cardList[pos2] = cardList[pos1]
+            cardList[firstCardPosition] = MemoryCard(i)
+            cardList[secondCardPosition] = cardList[firstCardPosition]
         }
         return cardList
     }

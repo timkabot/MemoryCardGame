@@ -1,4 +1,4 @@
-package com.app.memorycardgame.presentation.board
+package com.app.memorycardgame.ui.board
 
 import com.arellomobile.mvp.MvpView
 

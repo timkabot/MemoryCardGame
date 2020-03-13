@@ -9,10 +9,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.app.memorycardgame.R
 import com.app.memorycardgame.Screens
 import com.app.memorycardgame.entity.MemoryCard
-import com.app.memorycardgame.utils.*
-import com.app.memorycardgame.utils.Utils.getArrayList
+import com.app.memorycardgame.model.data.storage.Prefs
 import com.app.memorycardgame.utils.Utils.getDrawableByName
-import com.app.memorycardgame.utils.Utils.saveArrayList
+import com.app.memorycardgame.utils.delayMs
+import com.app.memorycardgame.utils.scores_key
+import com.app.memorycardgame.utils.toast
+import com.app.memorycardgame.utils.vibrate
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.card_memory.view.*
 import ru.terrakok.cicerone.Router
@@ -20,13 +22,15 @@ import javax.inject.Inject
 
 class BoardListAdapter @Inject constructor(
     private val router: Router,
-    private val nickname: String
+    private val prefs: Prefs
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var listOfBoards = listOf<MemoryCard>()
     var openedCards = mutableListOf<Int>()
     var tries = 0
     var points = 0
+    lateinit var nickname: String
+    var columnCount: Int = 2
     override fun getItemCount(): Int = listOfBoards.size
 
     override fun onBindViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int) {
@@ -58,9 +62,7 @@ class BoardListAdapter @Inject constructor(
 
         private fun closeOpenedCards() {
             closeCard()
-            for (i in openedCards) {
-                notifyItemChanged(i)
-            }
+            for (i in openedCards) notifyItemChanged(i)
             openedCards.clear()
         }
 
@@ -87,18 +89,16 @@ class BoardListAdapter @Inject constructor(
         }
 
         private fun saveResults() {
-            val scores: ArrayList<String>? =
-                getArrayList(itemView.context, scores_key) as ArrayList<String>?
-            if (scores == null) {
-                saveArrayList(itemView.context, listOf("$nickname $tries"), scores_key)
-            } else {
+            val scores: ArrayList<String>? = prefs.getArrayList(scores_key) as ArrayList<String>?
+            if (scores == null) prefs.saveArrayList(listOf("$nickname $tries"), scores_key)
+            else {
                 scores.add("$nickname $tries")
-                saveArrayList(itemView.context, scores, scores_key)
+                prefs.saveArrayList(scores, scores_key)
             }
         }
 
         fun bind(memoryCard: MemoryCard) {
-            val id = memoryCard.type
+            val id = memoryCard.category
             val drawable = getDrawableByName("card$id", itemView.context)
             closeCard()
             itemView.setOnClickListener {
@@ -110,8 +110,7 @@ class BoardListAdapter @Inject constructor(
                         closeCards()
                         itemView.context.vibrate()
                     }
-                }
-                else if (openedCards.size == 1 && openedCards[0] != layoutPosition) {
+                } else if (openedCards.size == 1 && openedCards[0] != layoutPosition) {
                     Glide.with(itemView.context).load(drawable).into(itemView.cardImage)
                     openedCards.clear()
 
@@ -126,6 +125,5 @@ class BoardListAdapter @Inject constructor(
         }
 
     }
-
 
 }

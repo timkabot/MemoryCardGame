@@ -1,3 +1,3 @@
 package com.app.memorycardgame.entity
 
-data class MemoryCard(val type: Int, var closed: Boolean = true)
+data class MemoryCard(val category: Int, var closed: Boolean = true)

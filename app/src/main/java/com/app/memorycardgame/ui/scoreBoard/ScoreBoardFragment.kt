@@ -2,7 +2,6 @@ package com.app.memorycardgame.ui.scoreBoard
 
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.app.memorycardgame.R
-import com.app.memorycardgame.presentation.scoreBoard.IScoreBoardView
 import com.app.memorycardgame.presentation.scoreBoard.ScoreBoardPresenter
 import com.app.memorycardgame.ui.global.BaseFragment
 import com.app.memorycardgame.ui.global.list.ScoreboardAdapter
@@ -10,7 +9,8 @@ import com.arellomobile.mvp.presenter.InjectPresenter
 import com.arellomobile.mvp.presenter.ProvidePresenter
 import kotlinx.android.synthetic.main.fragment_scoreboard.*
 
-class ScoreBoardFragment : BaseFragment(), IScoreBoardView {
+class ScoreBoardFragment : BaseFragment(),
+    IScoreBoardView {
     override val layoutRes = R.layout.fragment_scoreboard
     private lateinit var linearLayoutManager: LinearLayoutManager
     private lateinit var scoreboardAdapter: ScoreboardAdapter
@@ -25,8 +25,7 @@ class ScoreBoardFragment : BaseFragment(), IScoreBoardView {
     override fun onStart() {
         super.onStart()
         initRecycler()
-        val data = presenter.getScoreData()
-        updateRecycler(data)
+        presenter.updateData()
     }
 
     override fun initRecycler() {
@@ -36,9 +35,12 @@ class ScoreBoardFragment : BaseFragment(), IScoreBoardView {
         scoreboardRecycler.adapter = scoreboardAdapter
     }
 
+    override fun setDate(data: List<String>) {
+        updateRecycler(data)
+    }
+
     private fun updateRecycler(data: List<String>) {
         scoreboardAdapter.setScoreBoardsList(data)
-
     }
 
     override fun onBackPressed() {
